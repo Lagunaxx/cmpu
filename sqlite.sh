@@ -60,7 +60,7 @@ sqliteCreate () {
  sqlite3 "$sqlFILE" "CREATE TABLE IF NOT EXISTS SearchData ( id INTEGER PRIMARY KEY AUTOINCREMENT, SearchType INTEGER NOT NULL, Data1 INTEGER, Data2 INTEGER );" # <- for 'cmp' logging (log here every 'cmp' command). DataX is id of 'Data'-table
 
  sqlite3 "$sqlFILE" "CREATE TABLE IF NOT EXISTS DataTypes ( id INTEGER PRIMARY KEY AUTOINCREMENT, Type TEXT NOT NULL, DTTable TEXT);" # <- Table for data-types
- sqlite3 "$sqlFILE" "INSERT INTO DataTypes (Type, DTTable) VALUES (\"Folder\",\"datapath\"), (\"File\",\"filenames\"), (\"Masked\",\"MaskLink\"), (\"Integer\",\"Data\"), (\"Text\",\"Texts\"), (\"Dataset\",\"DataSets\"), (\"Saved\",\"Saves\");" # <- add here if any other data-types will be added. 'Masked' used to determine what part of data are analized (not analized data may be any value in middle part). Using table 'MaskLink' as Data in 'SearchData'. 'Saved' mast be used to point on step (log) whos result mast be using (reserved)
+ sqlite3 "$sqlFILE" "INSERT INTO DataTypes (Type, DTTable) VALUES (\"Folder\",\"datapath\"), (\"File\",\"filenames\"), (\"DataMask\",\"DataMask\"), (\"Masked\",\"MaskLink\"), (\"Integer\",\"Data\"), (\"Text\",\"Texts\"), (\"Dataset\",\"DataSets\"), (\"Saved\",\"Saves\");" # <- add here if any other data-types will be added. 'Masked' used to determine what part of data are analized (not analized data may be any value in middle part). Using table 'MaskLink' as Data in 'SearchData'. 'Saved' mast be used to point on step (log) whos result mast be using (reserved)
 #ToDo: DataType Integer need to be depricated. Any numeric data mast store in BLOB (Dataset) as number of bytes.
 
  sqlite3 "$sqlFILE" "CREATE TABLE IF NOT EXISTS CompareLog ( id INTEGER PRIMARY KEY AUTOINCREMENT, command INTEGER NOT NULL, data INTEGER);" # <- add here every command by adding insertion to table in top of command block. 'data' will be id of 'SearchData'.
@@ -215,6 +215,25 @@ sqliteGetDatasetID () {
 
 #################################################################################################################################################
 
+sqliteGetDataMaskID () {
+# Return ID of dataset if present
+# Usage:
+#  sqliteGetDataMaskID "SQLite/database.dbfile" returnVariableName binaryData
+
+ local sqlFILE="$1"
+ local -n result="$2"
+ local blobtext="$3"
+
+ # Encode 'blobtext'-number to binary format
+ #local blob= bash do not support binary data normaly. so converting it right into sql command
+# 'blobtext' mast be "HHJJKK..." format, where HH=hex byte
+# ToDo: make 'blobtext' more flexible with numbers
+
+ result=$(sqlite3 "$sqlFILE" "SELECT id FROM DataMask WHERE Mask=x'$blobtext';")
+}
+
+#################################################################################################################################################
+
 sqliteGetTextID () {
 # Return ID of text if present
 # Usage:
@@ -224,6 +243,20 @@ sqliteGetTextID () {
  local -n result="$2"
  local text="$3"
  result=$(sqlite3 "$sqlFILE" "SELECT id FROM Texts WHERE Text=\"$text\";")
+}
+
+#################################################################################################################################################
+
+sqliteGetMaskLinkID () {
+# Return ID of MaskLink if present
+# Usage:
+#  sqliteGetMaskLinkID "SQLite/database.dbfile" returnVariableName "DataID" "MaskID"
+
+ local sqlFILE="$1"
+ local -n result="$2"
+ local DataID="$3"
+ local MaskID="$4"
+ result=$(sqlite3 "$sqlFILE" "SELECT id FROM MaskLink WHERE Data=\"$DataID\" AND DataMask=\"$MaskID\";")
 }
 
 #################################################################################################################################################
@@ -280,7 +313,7 @@ sqliteAddFile () {
    sqliteGetFileID "$sqlFILE" fileID "$sqlPATH" "$sqlNAME"
    sqliteGetDataTypeID "$sqlFILE" DataTypeID "File"
    sqliteAddData "$sqlFILE" "$DataTypeID" "$fileID" returnDataID
-   sqliteLog "$DBASE" "add" "$returnDataID"
+#   sqliteLog "$DBASE" "add" "$returnDataID"
 
   fi
 
@@ -316,7 +349,7 @@ sqliteAddFolder () {
    sqliteGetPathID "$sqlFILE" pathid "$sqlPATH"
    sqliteGetDataTypeID "$sqlFILE" DataTypeID "Folder"
    sqliteAddData "$sqlFILE" "$DataTypeID" "$pathid" returnDataID
-   sqliteLog "$DBASE" "add" "$returnDataID"
+#   sqliteLog "$DBASE" "add" "$returnDataID"
   fi
 
   if [[ "$3" != "" ]]; then
@@ -346,7 +379,7 @@ sqliteAddText () {
   sqliteGetTextID "$sqlFILE" idData "$text"
   sqliteGetDataTypeID "$sqlFILE" DataTypeID "Text"
   sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
-  sqliteLog "$DBASE" "add" "$returnDataID"
+#  sqliteLog "$DBASE" "add" "$returnDataID"
  fi
  if [[ "$3" != "" ]]; then
   local -n sqlReturnID="$3"
@@ -370,7 +403,7 @@ sqliteAddDataset () {
   sqliteGetDatasetID "$sqlFILE" idData "$dataset"
   sqliteGetDataTypeID "$sqlFILE" DataTypeID "Dataset"
   sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
-  sqliteLog "$DBASE" "add" "$returnDataID"
+#  sqliteLog "$DBASE" "add" "$returnDataID"
  fi
  if [[ "$3" != "" ]]; then
   local -n sqlReturnID="$3"
@@ -384,25 +417,25 @@ sqliteAddDataset () {
 sqliteAddMaskLink () {
 # Add path to analization
 # Usage:
-#  sqliteAddFolder "SQLite/database.dbfile" "DataMask" "Mask" [returnVariableName]
+#  sqliteAddFolder "SQLite/database.dbfile" "DataID" "MaskID" [returnVariableName]
 
  local sqlFILE="$1"
- local DataMask="$2"
- local Mask="$3"
+ local DataID="$2"
+ local MaskID="$3"
 
- #sqliteGetMaskLinkID "$sqlFILE" sqlReturnID "$DataMask" "$Mask"
+ sqliteGetMaskLinkID "$sqlFILE" sqlReturnID "$DataID" "$MaskID"
 
- #if [[ "" = "" ]]; then
- # sqlite3 "$sqlFILE" "INSERT INTO MaskLink (Data,DataMask) VALUES (\"$DataMask\", \"$Mask\");"
- # sqliteGetMaskLinkID "$sqlFILE" idData "$DataMask" "$Mask"
- # sqliteGetDataTypeID "$sqlFILE" DataTypeID "Masked"
- # sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
- # sqliteLog "$DBASE" "add" "$returnDataID"
- #fi
+ if [[ "$sqlReturnID" = "" ]]; then
+  sqlite3 "$sqlFILE" "INSERT INTO MaskLink (Data,DataMask) VALUES (\"$DataID\", \"$MaskID\");"
+  sqliteGetMaskLinkID "$sqlFILE" idData "$DataMask" "$MaskID"
+  sqliteGetDataTypeID "$sqlFILE" DataTypeID "Masked"
+  sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
+#  sqliteLog "$DBASE" "add" "$returnDataID"
+ fi
 
  if [[ "$4" != "" ]]; then
   local -n sqlReturnID="$4"
-#  sqliteGetMaskLinkID "$sqlFILE" sqlReturnID "$DataMask" "$Mask"
+  sqliteGetMaskLinkID "$sqlFILE" sqlReturnID "$DataID" "$MaskID"
  fi
 }
 
@@ -412,25 +445,22 @@ sqliteAddDataMask () {
 #ToDo: make DataMask as Dataset everywhere
 # Add path to analization
 # Usage:
-#  sqliteAddFolder "SQLite/database.dbfile" "Path" [returnVariableName]
+#  sqliteAddDataMask "SQLite/database.dbfile" "xData" [returnVariableName]
 
  local sqlFILE="$1"
- local Mask="$2"
+ local Data="$2" # mast be "HHJJKK...", where HH JJ and KK are byte-value (from 00 to FF)
 
- #sqliteGetMaskID "$sqlFILE" sqlReturnID "$Mask"
-
- #if [[ "" = "" ]]; then
- # sqlite3 "$sqlFILE" "INSERT INTO DataMask (Mask) VALUES (\"$Mask\");"
- # sqliteGetMaskID "$sqlFILE" idData "$DataMask" "$Mask"
- # sqliteGetDataTypeID "$sqlFILE" DataTypeID "Dataset"
- # sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
+ sqliteGetDataMaskID "$sqlFILE" datasetID "$Data"
+ if [[ "$datasetID" = "" ]]; then
+  sqlite3 "$sqlFILE" "INSERT INTO DataMask (Mask) VALUES (x'$Data');"
+  sqliteGetDataMaskID "$sqlFILE" idData "$Data"
+  sqliteGetDataTypeID "$sqlFILE" DataTypeID "DataMask"
+  sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
  # sqliteLog "$DBASE" "add" "$returnDataID"
- #fi
-
- if [[ "$3" != "" ]]; then
-  local -n sqlReturnID="$4"
-#  sqliteGetMaskLinkID "$sqlFILE" sqlReturnID "$DataMask" "$Mask"
  fi
+ if [[ "$3" != "" ]]; then
+  local -n sqlReturnID="$3"
+  sqliteGetDataMaskID "$sqlFILE" sqlReturnID "$Data"
  fi
 }
 
@@ -447,14 +477,16 @@ sqliteAddData () {
 
  sqliteGetDataID "$sqlFILE" id "$datatype" "$dataid"
 #debug 
-echo "data id = $id"
+#echo "data id = $id"
  if [[ "$id" = "" ]]; then
   sqlite3 "$sqlFILE" "INSERT INTO Data (DataType, Data) VALUES ($datatype,$dataid);"
+  sqliteGetDataID "$sqlFILE" id "$datatype" "$dataid"
+  sqliteLog "$DBASE" "add" "$returnDataID"
  fi
+
  if [[ "$4" != "" ]]; then
   local -n sqlReturnID="$4"
-  sqliteGetData "$sqlFILE" sqlReturnID "$datatype" "$dataid"
-  #sqlReturnID=$(sqlite3 "$sqlFILE" "SELECT id FROM datapath WHERE path=\"$sqlPATH\"")
+  sqlReturnID="$id"
  fi
 }
 

@@ -58,27 +58,16 @@ elif [ "$COMMAND" = "add" ]; then
  # Add file/folder to check
  if [[ "$2" = "-f" ]]; then
   sqliteAddFile "$DBASE" "$3" returnVal
-# ToDo: add logging into functions;  sqliteAddData "$DBASE" ...
 # ToDo: make able to switch logging off
-  #ToDo add record to log with data logging
-#sqliteGetDataTypeID "$DBASE" DataTypeID "File"
-#sqliteAddData "$DBASE" "$DataTypeID" "$returnVal" returnDataID
-  #ToDo add Data  adding to sqlite.sh
 
  elif [[ "$2" = "-d" ]]; then
   sqliteAddFolder "$DBASE" "$3" returnVal
-#sqliteGetDataTypeID "$DBASE" DataTypeID "Folder"
-#sqliteAddData "$DBASE" "$DataTypeID" "$returnVal" returnDataID
 
  elif [[ "$2" = "-t" ]]; then
   sqliteAddText "$DBASE" "$3" returnVal
-#sqliteGetDataTypeID "$DBASE" DataTypeID "Text"
-#sqliteAddData "$DBASE" "$DataTypeID" "$returnVal" returnDataID
 
  elif [[ "$2" = "-b" ]]; then
   sqliteAddDataset "$DBASE" "$3" returnVal
-#sqliteGetDataTypeID "$DBASE" DataTypeID "Dataset"
-#sqliteAddData "$DBASE" "$DataTypeID" "$returnVal" returnDataID
 
  elif [[ "$2" = "-" ]]; then
   echo "'-' used. ToDo: add any other options if need"

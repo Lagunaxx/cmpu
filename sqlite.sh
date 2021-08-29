@@ -278,6 +278,10 @@ sqliteAddFile () {
   if [[ "$fileID" == "" ]]; then
    sqlite3 "$sqlFILE" "INSERT INTO filenames (name,path) VALUES (\"$sqlNAME\",\"$pathID\");"
    sqliteGetFileID "$sqlFILE" fileID "$sqlPATH" "$sqlNAME"
+   sqliteGetDataTypeID "$sqlFILE" DataTypeID "File"
+   sqliteAddData "$sqlFILE" "$DataTypeID" "$fileID" returnDataID
+   sqliteLog "$DBASE" "add" "$returnDataID"
+
   fi
 
   checkID="$fileID"
@@ -339,6 +343,10 @@ sqliteAddText () {
  sqliteGetTextID "$sqlFILE" textID "$text"
  if [[ "$textID" = "" ]]; then
   sqlite3 "$sqlFILE" "INSERT INTO Texts (Text) VALUES (\"$text\");"
+  sqliteGetTextID "$sqlFILE" idData "$text"
+  sqliteGetDataTypeID "$sqlFILE" DataTypeID "Text"
+  sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
+  sqliteLog "$DBASE" "add" "$returnDataID"
  fi
  if [[ "$3" != "" ]]; then
   local -n sqlReturnID="$3"
@@ -359,6 +367,10 @@ sqliteAddDataset () {
  sqliteGetDatasetID "$sqlFILE" datasetID "$dataset"
  if [[ "$datasetID" = "" ]]; then
   sqlite3 "$sqlFILE" "INSERT INTO Datasets (dataset) VALUES (x'$dataset');"
+  sqliteGetDatasetID "$sqlFILE" idData "$dataset"
+  sqliteGetDataTypeID "$sqlFILE" DataTypeID "Dataset"
+  sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
+  sqliteLog "$DBASE" "add" "$returnDataID"
  fi
  if [[ "$3" != "" ]]; then
   local -n sqlReturnID="$3"
@@ -372,32 +384,53 @@ sqliteAddDataset () {
 sqliteAddMaskLink () {
 # Add path to analization
 # Usage:
-#  sqliteAddFolder "SQLite/database.dbfile" "Path" [returnVariableName]
+#  sqliteAddFolder "SQLite/database.dbfile" "DataMask" "Mask" [returnVariableName]
 
  local sqlFILE="$1"
- local sqlPATH="$2"
- #sqlite3 "$sqlFILE" "INSERT INTO datapath (path) VALUES (\"$sqlPATH\");"
- if [[ "$3" != "" ]]; then
-  local -n sqlReturnID="$3"
-#  sqliteGetPathID "$sqlFILE" sqlReturnID "$sqlPATH"
-  #sqlReturnID=$(sqlite3 "$sqlFILE" "SELECT id FROM datapath WHERE path=\"$sqlPATH\"")
+ local DataMask="$2"
+ local Mask="$3"
+
+ #sqliteGetMaskLinkID "$sqlFILE" sqlReturnID "$DataMask" "$Mask"
+
+ #if [[ "" = "" ]]; then
+ # sqlite3 "$sqlFILE" "INSERT INTO MaskLink (Data,DataMask) VALUES (\"$DataMask\", \"$Mask\");"
+ # sqliteGetMaskLinkID "$sqlFILE" idData "$DataMask" "$Mask"
+ # sqliteGetDataTypeID "$sqlFILE" DataTypeID "Masked"
+ # sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
+ # sqliteLog "$DBASE" "add" "$returnDataID"
+ #fi
+
+ if [[ "$4" != "" ]]; then
+  local -n sqlReturnID="$4"
+#  sqliteGetMaskLinkID "$sqlFILE" sqlReturnID "$DataMask" "$Mask"
  fi
 }
 
 #################################################################################################################################################
 
 sqliteAddDataMask () {
+#ToDo: make DataMask as Dataset everywhere
 # Add path to analization
 # Usage:
 #  sqliteAddFolder "SQLite/database.dbfile" "Path" [returnVariableName]
 
  local sqlFILE="$1"
- local sqlPATH="$2"
- #sqlite3 "$sqlFILE" "INSERT INTO datapath (path) VALUES (\"$sqlPATH\");"
+ local Mask="$2"
+
+ #sqliteGetMaskID "$sqlFILE" sqlReturnID "$Mask"
+
+ #if [[ "" = "" ]]; then
+ # sqlite3 "$sqlFILE" "INSERT INTO DataMask (Mask) VALUES (\"$Mask\");"
+ # sqliteGetMaskID "$sqlFILE" idData "$DataMask" "$Mask"
+ # sqliteGetDataTypeID "$sqlFILE" DataTypeID "Dataset"
+ # sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
+ # sqliteLog "$DBASE" "add" "$returnDataID"
+ #fi
+
  if [[ "$3" != "" ]]; then
-  local -n sqlReturnID="$3"
-#  sqliteGetPathID "$sqlFILE" sqlReturnID "$sqlPATH"
-  #sqlReturnID=$(sqlite3 "$sqlFILE" "SELECT id FROM datapath WHERE path=\"$sqlPATH\"")
+  local -n sqlReturnID="$4"
+#  sqliteGetMaskLinkID "$sqlFILE" sqlReturnID "$DataMask" "$Mask"
+ fi
  fi
 }
 

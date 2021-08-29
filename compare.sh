@@ -61,8 +61,8 @@ elif [ "$COMMAND" = "add" ]; then
 # ToDo: add logging into functions;  sqliteAddData "$DBASE" ...
 # ToDo: make able to switch logging off
   #ToDo add record to log with data logging
-sqliteGetDataTypeID "$DBASE" DataTypeID "File"
-sqliteAddData "$DBASE" "$DataTypeID" "$returnVal" returnDataID
+#sqliteGetDataTypeID "$DBASE" DataTypeID "File"
+#sqliteAddData "$DBASE" "$DataTypeID" "$returnVal" returnDataID
   #ToDo add Data  adding to sqlite.sh
 
  elif [[ "$2" = "-d" ]]; then
@@ -72,13 +72,13 @@ sqliteAddData "$DBASE" "$DataTypeID" "$returnVal" returnDataID
 
  elif [[ "$2" = "-t" ]]; then
   sqliteAddText "$DBASE" "$3" returnVal
-sqliteGetDataTypeID "$DBASE" DataTypeID "Text"
-sqliteAddData "$DBASE" "$DataTypeID" "$returnVal" returnDataID
+#sqliteGetDataTypeID "$DBASE" DataTypeID "Text"
+#sqliteAddData "$DBASE" "$DataTypeID" "$returnVal" returnDataID
 
  elif [[ "$2" = "-b" ]]; then
   sqliteAddDataset "$DBASE" "$3" returnVal
-sqliteGetDataTypeID "$DBASE" DataTypeID "Dataset"
-sqliteAddData "$DBASE" "$DataTypeID" "$returnVal" returnDataID
+#sqliteGetDataTypeID "$DBASE" DataTypeID "Dataset"
+#sqliteAddData "$DBASE" "$DataTypeID" "$returnVal" returnDataID
 
  elif [[ "$2" = "-" ]]; then
   echo "'-' used. ToDo: add any other options if need"
@@ -94,7 +94,7 @@ sqliteAddData "$DBASE" "$DataTypeID" "$returnVal" returnDataID
   exit 1
  fi
 
- sqliteLog "$DBASE" "add" "$returnDataID"
+# sqliteLog "$DBASE" "add" "$returnDataID"
  echo "ID of added data = $returnVal"
  echo "Exiting"
  exit 0

@@ -54,23 +54,56 @@ elif [ "$COMMAND" = "ttt" ]; then
 
  echo "Exiting"
  exit 0
+ 
+####################################  Command 'add'  ####################################
 elif [ "$COMMAND" = "add" ]; then 
  # Add file/folder to check
  if [[ "$2" = "-f" ]]; then
+  if [ "$3" = "" ]; then
+   echo "Need data! Use 'compare.sh add -h' to read more"
+   echo "Exiting with error 1"
+   exit 1
+  fi
   sqliteAddFile "$DBASE" "$3" returnVal
 # ToDo: make able to switch logging off
 
  elif [[ "$2" = "-d" ]]; then
+  if [ "$3" = "" ]; then
+   echo "Need data! Use 'compare.sh add -h' to read more"
+   echo "Exiting with error 1"
+   exit 1
+  fi
   sqliteAddFolder "$DBASE" "$3" returnVal
 
  elif [[ "$2" = "-t" ]]; then
+  if [ "$3" = "" ]; then
+   echo "Need data! Use 'compare.sh add -h' to read more"
+   echo "Exiting with error 1"
+   exit 1
+  fi
   sqliteAddText "$DBASE" "$3" returnVal
 
  elif [[ "$2" = "-b" ]]; then
+  if [ "$3" = "" ]; then
+   echo "Need data! Use 'compare.sh add -h' to read more"
+   echo "Exiting with error 1"
+   exit 1
+  fi
   sqliteAddDataset "$DBASE" "$3" returnVal
 
  elif [[ "$2" = "-" ]]; then
   echo "'-' used. ToDo: add any other options if need"
+  exit 0
+ elif [[ "$2" = "-h" ]]; then
+  echo "Using:"
+  echo "  compare.sh add [option] [data]"
+  echo "option:"
+  echo " -f - file"
+  echo " -d - folder"
+  echo " -t - text"
+  echo " -b - binary data, like \"0A23FF\""
+  echo " -h - current help"
+  echo "data - depends on option: path to file or folder, quoted text, hex-nuber"  
   exit 0
  else
   echo "Type of data mast be specified:"
@@ -79,8 +112,8 @@ elif [ "$COMMAND" = "add" ]; then
   echo " -t - text"
   echo " -b - integer"
   echo ""
-  echo "Exiting with error 1"
-  exit 1
+  echo "Exiting with error 2"
+  exit 2
  fi
 
 # sqliteLog "$DBASE" "add" "$returnDataID"
@@ -88,7 +121,59 @@ elif [ "$COMMAND" = "add" ]; then
  echo "Exiting"
  exit 0
 
+####################################  Command 'cmp'  ####################################
 elif [ "$COMMAND" = "cmp" ]; then
+ # Create menu
+ menuloop=1
+ type=0
+ menupath=""
+ while [ "$menuloop" = "1" ] 
+  do
+   if [ "$menupath" = "" ]; then
+    source include/menu/main.sh
+   
+   elif [ "$menupath" = "1" ]; then
+    source include/menu/seltype.sh
+   
+   elif [ "$menupath" = "11" ]; then
+    source include/menu/selcmptype.sh
+    
+   elif [ "$menupath" = "12" ]; then
+    source include/menu/selsearch.sh
+     
+   elif [ "$menupath" = "2" ]; then
+    # Menu "Data1"
+    output=$(dialog --stdout --backtitle "Compare"\
+ 		--title "Select Data1"\
+ 		--menu ""\
+ 			20 20\
+ 			2\
+ 			1 "Compare"\
+ 			2 "Search"\
+		)
+	menupath=$(echo "$menupath" | head -c 1)"$output"
+    
+   elif [ "$menupath" = "3" ]; then
+    # Menu "Data2"
+    output=$(dialog --stdout --backtitle "Compare"\
+ 		--title "Select Data2"\
+ 		--menu ""\
+ 			20 20\
+ 			2\
+ 			1 "Compare"\
+ 			2 "Search"\
+		)
+	menupath=$(echo "$menupath" | head -c 1)"$output"
+    
+   fi
+   if [ "$menuloop" = "0" ]; then
+    break
+   fi
+  done
+
+
+####################################  Command 'cmpold'  ####################################
+elif [ "$COMMAND" = "cmpold" ]; then
  # Begin comparing
 
  # $2 mast be Filter
@@ -137,8 +222,8 @@ elif [ "$COMMAND" = "cmp" ]; then
    echo " $filtername"
   done
   echo ""
-  echo "Exiting with error 1"
-  exit 1
+  echo "Exiting with error 3"
+  exit 3
   # Exited due no filter in database
  fi
 
@@ -216,8 +301,8 @@ elif [ "$COMMAND" = "cmp" ]; then
    echo " $datatypename"
   done
   echo ""
-  echo "Exiting with error 1"
-  exit 1
+  echo "Exiting with error 4"
+  exit 4
   # Exited due no DataTypes in database
  fi
 
@@ -229,8 +314,8 @@ elif [ "$COMMAND" = "cmp" ]; then
    echo " $datatypename"
   done
   echo ""
-  echo "Exiting with error 1"
-  exit 1
+  echo "Exiting with error 4"
+  exit 4
   # Exited due no DataTypes in database
  fi
 
@@ -243,13 +328,13 @@ echo "DataType1=$DataType1; DataType2=$DataType2; Data1=$Data1; Data2=$Data2"
 
  if [[ "$dataID1" = ""  ]]; then
   echo "No data $Data1 present"
-  echo "Exiting with error 1"
-  exit 1
+  echo "Exiting with error 5"
+  exit 5
  fi
  if [[ "$dataID2" = ""  ]]; then
   echo "No data $Data2 present"
-  echo "Exiting with error 1"
-  exit 1
+  echo "Exiting with error 5"
+  exit 5
  fi
 
 
@@ -257,7 +342,7 @@ echo "DataType1=$DataType1; DataType2=$DataType2; Data1=$Data1; Data2=$Data2"
 
 exit 0
 
-Data1="$3"
+ Data1="$3"
  if [[ -n $4 ]]; then
   Data2="$4"
  else
@@ -374,8 +459,17 @@ Data1="$3"
 
 
     # End of comparing
-
-   fi
+else
+	echo "Usage:"
+	echo "  compare.sh [command] [options]"
+	echo "  "
+	echo "Commands:"
+	echo "  new - create new database"
+	echo "  add - add new source"
+	echo "  cmp - copare sources"
+	echo "  "
+	echo "  compare.sh command -h for help about command"
+fi
 
 
 exit 0;
@@ -438,7 +532,7 @@ elif [ "$COMMAND" = "test" ]; then
     c_feq=$((c_feq+1))
  #   $DIFF_CMD $DIFF_PARAM $DIR1/$FNAME1 $DIR2/$FNAME2
    fi
-   if [[ "$c_count2" = "1" ]]; then
+   if [ "$c_count2" = "1" ]; then
     c_files2=$((c_files2+1))
    fi
   done

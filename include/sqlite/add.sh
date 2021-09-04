@@ -43,7 +43,6 @@ sqliteAddFile () {
 
  elif [[ -f "$sqlDATA" ]]; then
   # File specified
-#debug  echo "File $sqlDATA"
 
   # Check if folder to file exists, if donot exists then add it
   sqlNAME="${sqlDATA##*/}" # Strip longest match of */ from start
@@ -62,7 +61,6 @@ sqliteAddFile () {
    sqliteGetFileID "$sqlFILE" fileID "$sqlPATH" "$sqlNAME"
    sqliteGetDataTypeID "$sqlFILE" DataTypeID "File"
    sqliteAddData "$sqlFILE" "$DataTypeID" "$fileID" returnDataID
-#   sqliteLog "$DBASE" "add" "$returnDataID"
 
   fi
 
@@ -98,13 +96,11 @@ sqliteAddFolder () {
    sqliteGetPathID "$sqlFILE" pathid "$sqlPATH"
    sqliteGetDataTypeID "$sqlFILE" DataTypeID "Folder"
    sqliteAddData "$sqlFILE" "$DataTypeID" "$pathid" returnDataID
-#   sqliteLog "$DBASE" "add" "$returnDataID"
   fi
 
   if [[ "$3" != "" ]]; then
    local -n sqlReturnID="$3"
    sqliteGetPathID "$sqlFILE" sqlReturnID "$sqlPATH"
-   #sqlReturnID=$(sqlite3 "$sqlFILE" "SELECT id FROM datapath WHERE path=\"$sqlPATH\"")
   fi
   return 0
  else
@@ -118,7 +114,7 @@ sqliteAddFolder () {
 sqliteAddText () {
 # Add Text to analization
 # Usage:
-#  sqliteAddFolder "SQLite/database.dbfile" "Text" [returnVariableName]
+#  sqliteAddText "SQLite/database.dbfile" "Text" [returnVariableName]
 
  local sqlFILE="$1"
  local text="$2"
@@ -128,7 +124,6 @@ sqliteAddText () {
   sqliteGetTextID "$sqlFILE" idData "$text"
   sqliteGetDataTypeID "$sqlFILE" DataTypeID "Text"
   sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
-#  sqliteLog "$DBASE" "add" "$returnDataID"
  fi
  if [[ "$3" != "" ]]; then
   local -n sqlReturnID="$3"
@@ -141,7 +136,9 @@ sqliteAddText () {
 sqliteAddDataset () {
 # Add path to analization
 # Usage:
-#  sqliteAddFolder "SQLite/database.dbfile" binaryData [returnVariableName]
+#  sqliteAddDataset "SQLite/database.dbfile" binaryData [returnVariableName]
+#
+# binaryData mast be like "0AFF55" or "0a44bf" or similar.
 
  local sqlFILE="$1"
  local dataset="$2" # mast be "HHJJKK...", where HH JJ and KK are byte-value (from 00 to FF)
@@ -157,7 +154,6 @@ sqliteAddDataset () {
  if [[ "$3" != "" ]]; then
   local -n sqlReturnID="$3"
   sqliteGetDatasetID "$sqlFILE" sqlReturnID "$dataset"
-  #sqlReturnID=$(sqlite3 "$sqlFILE" "SELECT id FROM datapath WHERE path=\"$sqlPATH\"")
  fi
 }
 
@@ -166,7 +162,7 @@ sqliteAddDataset () {
 sqliteAddMaskLink () {
 # Add path to analization
 # Usage:
-#  sqliteAddFolder "SQLite/database.dbfile" "DataID" "MaskID" [returnVariableName]
+#  sqliteAddMaskLink "SQLite/database.dbfile" "DataID" "MaskID" [returnVariableName]
 
  local sqlFILE="$1"
  local DataID="$2"
@@ -179,7 +175,6 @@ sqliteAddMaskLink () {
   sqliteGetMaskLinkID "$sqlFILE" idData "$DataMask" "$MaskID"
   sqliteGetDataTypeID "$sqlFILE" DataTypeID "Masked"
   sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
-#  sqliteLog "$DBASE" "add" "$returnDataID"
  fi
 
  if [[ "$4" != "" ]]; then
@@ -205,7 +200,6 @@ sqliteAddDataMask () {
   sqliteGetDataMaskID "$sqlFILE" idData "$Data"
   sqliteGetDataTypeID "$sqlFILE" DataTypeID "DataMask"
   sqliteAddData "$sqlFILE" "$DataTypeID" "$idData" returnDataID
- # sqliteLog "$DBASE" "add" "$returnDataID"
  fi
  if [[ "$3" != "" ]]; then
   local -n sqlReturnID="$3"
@@ -225,11 +219,10 @@ sqliteAddData () {
  local dataid="$3"
 
  sqliteGetDataID "$sqlFILE" id "$datatype" "$dataid"
-#debug 
-#echo "data id = $id"
+
  if [[ "$id" = "" ]]; then
   sqlite3 "$sqlFILE" "INSERT INTO Data (DataType, Data) VALUES ($datatype,$dataid);"
-  sqliteGetDataID "$sqlFILE" id "$datatype" "$dataid"
+  sqliteGetDataID "$sqlFILE" returnDataID "$datatype" "$dataid"
   sqliteLog "$DBASE" "add" "$returnDataID"
  fi
 

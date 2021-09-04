@@ -14,10 +14,10 @@
 #  'compare.sh cmp' command.
 #
 ###################################################################
+#DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-
-source sqlite.sh
-source textbin.sh
+source include/sqlite.sh
+source include/textbin.sh
 
 DIFF_CMD="diff"
 DIFF_PARAM="--changed-group-format='%>' --unchanged-group-format=''"
@@ -438,7 +438,7 @@ elif [ "$COMMAND" = "test" ]; then
     c_feq=$((c_feq+1))
  #   $DIFF_CMD $DIFF_PARAM $DIR1/$FNAME1 $DIR2/$FNAME2
    fi
-   if [ "$c_count2" = "1" ]; then
+   if [[ "$c_count2" = "1" ]]; then
     c_files2=$((c_files2+1))
    fi
   done
